@@ -15,7 +15,7 @@ problem, this term project focuses mainly on the creation of an
 efficient authentication required parking lot system with the help of
 the KL25Z microcontroller.
 
-![image](images/clipart.jpg)
+<img src="images/clipart.jpg" alt="drawing" width="200"/>
 
 Requirements
 ============
@@ -43,7 +43,7 @@ Thus, a distance sensor will be used which can provide a similar
 functionality while leaving room for enhancements. As a final touch, LCD
 display and LEDs will be used to provide visual assistance to the users.
 
-![image](images/plan.jpg){width="13.5%"}
+<img src="images/plan.jpg" alt="drawing" width="150"/>
 
 Components
 ==========
@@ -60,4 +60,4 @@ Components
 
 6.  LED (Green, Red)
 
-![image](images/Diagram.jpg){#uml width="\\textwidth"}
+<img src="images/Diagram.jpg" alt="drawing" width="500"/>
