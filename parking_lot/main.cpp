@@ -31,7 +31,7 @@ void lcd_grant_access()
 void lcd_intruder()
 {
     lcd.cls();
-    lcd.printf("Not Identified!");
+    lcd.printf("Access Denied");
     lcd.locate(0, 1);
     lcd.printf("Use A Valid Card");
 }
