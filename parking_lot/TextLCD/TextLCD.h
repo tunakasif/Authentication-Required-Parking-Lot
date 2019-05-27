@@ -40,15 +40,19 @@
  * }
  * @endcode
  */
-class TextLCD : public Stream {
+class TextLCD : public Stream
+{
 public:
-
     /** LCD panel format */
-    enum LCDType {
-        LCD16x2     /**< 16x2 LCD panel (default) */
-        , LCD16x2B  /**< 16x2 LCD panel alternate addressing */
-        , LCD20x2   /**< 20x2 LCD panel */
-        , LCD20x4   /**< 20x4 LCD panel */
+    enum LCDType
+    {
+        LCD16x2 /**< 16x2 LCD panel (default) */
+        ,
+        LCD16x2B /**< 16x2 LCD panel alternate addressing */
+        ,
+        LCD20x2 /**< 20x2 LCD panel */
+        ,
+        LCD20x4 /**< 20x4 LCD panel */
     };
 
     /** Create a TextLCD interface
@@ -60,7 +64,6 @@ public:
      */
     TextLCD(PinName rs, PinName e, PinName d4, PinName d5, PinName d6, PinName d7, LCDType type = LCD16x2);
 
-#if DOXYGEN_ONLY
     /** Write a character to the LCD
      *
      * @param c The character to write to the display
@@ -72,8 +75,7 @@ public:
      * @param format A printf-style format string, followed by the
      *               variables to use in formating the string.
      */
-    int printf(const char* format, ...);
-#endif
+    int printf(const char *format, ...);
 
     /** Locate to a screen column and row
      *
@@ -89,7 +91,6 @@ public:
     int columns();
 
 protected:
-
     // Stream implementation functions
     virtual int _putc(int value);
     virtual int _getc();
