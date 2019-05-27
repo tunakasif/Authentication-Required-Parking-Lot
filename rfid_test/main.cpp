@@ -8,37 +8,26 @@
 #define SPI_MOSI PTD2
 #define SPI_MISO PTD3
 #define MF_RESET PTD5
-// KL25Z Pins for Debug UART port
-#define UART_RX PTA1
-#define UART_TX PTA2
 
-DigitalOut LedRed(LED_RED);
-DigitalOut LedGreen(LED_GREEN);
-DigitalOut LedBlue(LED_BLUE);
-
-Serial DebugUART(UART_TX, UART_RX);
+DigitalOut redLED(LED1);
+DigitalOut greenLED(LED2);
+DigitalOut blueLED(LED3);
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30, TextLCD::LCD16x2);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 
 int main()
 {
     // LCD
-    LedRed = 0;
-    LedGreen = 1;
-    LedBlue = 1;
     lcd.cls();
-
-    // Set debug UART speed
-    DebugUART.baud(115200);
 
     // Init. RC522 Chip
     RfChip.PCD_Init();
 
     while (true)
     {
-        LedRed = 0;
-        LedGreen = 1;
-        LedBlue = 1;
+        redLED = 1;
+        greenLED = 0;
+        blueLED = 1;
 
         // Look for new cards
         if (!RfChip.PICC_IsNewCardPresent())
@@ -47,8 +36,6 @@ int main()
             continue;
         }
 
-        LedBlue = 0;
-
         // Select one of the cards
         if (!RfChip.PICC_ReadCardSerial())
         {
@@ -56,25 +43,18 @@ int main()
             continue;
         }
 
-        LedRed = 1;
-        LedGreen = 0;
-        LedBlue = 1;
+        redLED = 1;
+        greenLED = 1;
+        blueLED = 1;
 
         // Print Card UID
         lcd.cls();
-        printf("Card UID: ");
         lcd.printf("Card UID: ");
         lcd.locate(0, 1);
         for (uint8_t i = 0; i < RfChip.uid.size; i++)
         {
-            printf(" %X02", RfChip.uid.uidByte[i]);
             lcd.printf("%X:", RfChip.uid.uidByte[i]);
         }
-        printf("\n\r");
-
-        // Print Card type
-        uint8_t piccType = RfChip.PICC_GetType(RfChip.uid.sak);
-        printf("PICC Type: %s \n\r", RfChip.PICC_GetTypeName(piccType));
-        wait_ms(1000);
+        wait(1);
     }
 }
