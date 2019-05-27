@@ -50,7 +50,7 @@ Components
 
 1.  FRDM-KL25Z Development Board
 
-2.  LCD Display (2 $\times$ 16)
+2.  LCD Display (2 x 16)
 
 3.  RFID-RC522 NFC Module, Card Reader
 
