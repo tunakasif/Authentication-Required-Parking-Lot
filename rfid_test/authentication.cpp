@@ -10,6 +10,7 @@
 #define SPI_MISO PTD3
 #define MF_RESET PTD5
 
+// Constraints for the system
 DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
@@ -38,6 +39,7 @@ int main()
     // variables
     std::string currentCardID = "";
 
+    // program code
     // Initialize
     lcd.cls();
     RfChip.PCD_Init();
