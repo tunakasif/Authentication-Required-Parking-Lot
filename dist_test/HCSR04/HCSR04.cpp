@@ -50,7 +50,8 @@ void HCSR04::isr_fall(void)
 {
     pulsetime.stop();
     pulsedur = pulsetime.read_us();
-    distance= (pulsedur*343)/20000;
+    distance = (pulsedur*343)/2000;
+    distance_cm = (pulsedur*343)/20000;
     pulsetime.reset();
 }
 
@@ -63,10 +64,16 @@ void HCSR04::fall (void (*fptr)(void))
     echo.fall(fptr);
 }
 
-unsigned int HCSR04::get_dist_cm()
+float HCSR04::get_dist_mm()
 {
     return distance;
 }
+
+unsigned int HCSR04::get_dist_cm()
+{
+    return distance_cm;
+}
+
 unsigned int HCSR04::get_pulse_us()
 {
     return pulsedur;

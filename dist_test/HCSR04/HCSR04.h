@@ -42,6 +42,10 @@ public:
     * @param distance in cms and returns -1, in case of failure
     */
     unsigned int get_dist_cm(void);
+    /** Return the distance from obstacle in cm
+    * @param distance in mms and returns -1, in case of failure
+    */
+    float get_dist_mm(void);
     /** Return the pulse duration equal to sonic waves travelling to obstacle and back to receiver.
     * @param pulse duration in microseconds.
     */
@@ -62,7 +66,8 @@ private:
     DigitalOut  trigger;
     InterruptIn echo;
     unsigned int pulsedur;
-    unsigned int distance;
+    float distance;
+    unsigned int distance_cm;
 };
 
 #endif
