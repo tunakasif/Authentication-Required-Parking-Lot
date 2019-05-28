@@ -19,7 +19,7 @@ MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 int main()
 {
     // variables
-    std::string name = "Tuna";
+    std::string id = "";
 
     // Initialize
     lcd.cls();
@@ -54,13 +54,16 @@ int main()
 
         // Print Card UID
         lcd.cls();
-        lcd.printf("Card UID: ");
-        lcd.locate(0, 1);
         for (uint8_t i = 0; i < RfChip.uid.size; i++)
         {
             lcd.printf("%X:", RfChip.uid.uidByte[i]);
+            id += RfChip.uid.uidByte[i];
         }
-        lcd.printf(name.c_str());
+        lcd.locate(0, 1);
+        for (int i = 0; i < RfChip.uid.size; i++)
+        {
+            lcd.printf("%X:", id[i]);
+        }
         wait(1);
     }
 }
