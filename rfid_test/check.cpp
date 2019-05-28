@@ -25,18 +25,36 @@ const std::string MASTER_ID = "36A1B815";
 void getCardID(std::string &currentCardID)
 {
     currentCardID = "";
+    char buffer[8];
+
     for (uint8_t i = 0; i < RfChip.uid.size; i++)
     {
-        currentCardID += RfChip.uid.uidByte[i];
+        sprintf(buffer, "%X", RfChip.uid.uidByte[i]);
+        currentCardID += buffer;
     }
 }
 
 void printCardID(std::string &cardID)
 {
+    /*
     for (int i = 0; i < RfChip.uid.size; i++)
     {
         lcd.printf("%X:", cardID[i]);
     }
+    */
+    lcd.printf(cardID.c_str());
+}
+
+bool checkList(std::vector<std::string> &id_list, std::string &cardID)
+{
+    for (int i = 0; i < id_list.size(); i++)
+    {
+        if (cardID == id_list.at(i))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 int main()
@@ -54,6 +72,9 @@ int main()
     // wait for new card read then execute procedure for the new card
     while (true)
     {
+        lcd.cls();
+        lcd.printf("Read Card");
+
         // set the LED to red
         redLED = 0;
         greenLED = 1;
@@ -81,7 +102,16 @@ int main()
         getCardID(currentCardID);
         lcd.cls();
         printCardID(currentCardID);
+        lcd.locate(0, 1);
 
-        wait(1);
+        if (checkList(id_list, currentCardID))
+        {
+            lcd.printf(" Open");
+        }
+        else
+        {
+            lcd.printf(" Close");
+        }
+        wait(2);
     }
 }
