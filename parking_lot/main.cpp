@@ -20,6 +20,9 @@ TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30, TextLCD::LCD16x2);
 Servo gate(PTA13);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 
+// Global Variables
+const std::string MASTER_ID = "36A1B815";
+
 // LCD Functions
 /**
  * Prints welcome screen to LCD
@@ -87,17 +90,14 @@ void lcd_count()
 void gate_open()
 {
     gate = 1.0;
-    lcd_grant_access();
 }
 
 /**
- * Rotates the servo to open the gate 
- * Displays default welcome screen on LCD afterwards
+ * Rotates the servo to close the gate 
  */
 void gate_close()
 {
     gate = 0.0;
-    lcd_welcome();
 }
 
 /**
@@ -111,33 +111,129 @@ void gate_initialize()
     gate_close();
 }
 
+// RFID Functions
+/**
+ * gets the card ID from serial read and stores 
+ * it as hexadecimal without spaces 
+ */
+void getCardID(std::string &currentCardID)
+{
+    currentCardID = "";
+    char buffer[8]; // created for sprintf()
+
+    for (uint8_t i = 0; i < RfChip.uid.size; i++)
+    {
+        sprintf(buffer, "%X", RfChip.uid.uidByte[i]);
+        currentCardID += buffer;
+    }
+}
+
+/**
+ * prints the card ID in the form of hexadecimal 
+ * without spaces
+ */
+void printCardID(std::string &cardID)
+{
+    lcd.printf(cardID.c_str());
+}
+
+/** 
+ * checks the authorized ID list with the given card ID.
+ * If there is a match returns true, if card is not in 
+ * the list returns false
+ */
+bool checkList(std::vector<std::string> &id_list, std::string &cardID)
+{
+    for (int i = 0; i < id_list.size(); i++)
+    {
+        if (cardID == id_list.at(i))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// LED Functions
+/**
+ * sets the rgb takes either 0 or 1 for each color
+ */
+void setLED(bool red, bool green, bool blue)
+{
+    redLED = red;
+    greenLED = green;
+    blueLED = blue;
+}
+
+// Procedures
+void openProcedure()
+{
+    setLED(1, 0, 1); // set the LED green
+    gate_open();
+    lcd_grant_access();
+}
+
+void intruderProcedure()
+{
+    setLED(0, 1, 0); // set the LED red
+    gate_close();
+    lcd_intruder();
+    wait(3);
+    lcd_welcome();
+}
+
+void closeProcedure()
+{
+    setLED(0, 1, 0); // set the LED red
+    gate_close();
+    lcd_welcome();
+}
+
 // program
 int main()
 {
     // variables
     int numberOfOpenClose = 3;
+    std::string currentCardID = "";
+    std::vector<std::string> id_list;
 
     // program code
-    gate_initialize();
-
-    // test LCD
+    id_list.push_back(MASTER_ID);
     lcd_welcome();
-    lcd_count();
-    lcd_verify();
-    wait(2);
-    lcd_grant_access();
-    wait(2);
-    lcd_intruder();
-    wait(2);
+    RfChip.PCD_Init();
+    gate_initialize();
+    setLED(0, 1, 0); // set the LED to red
 
-    // Test Servo
-    wait(3);
-    while (numberOfOpenClose > 0)
+    while (true)
     {
-        gate_open();
-        wait(2);
-        gate_close();
-        wait(2);
-        numberOfOpenClose--;
+        // Look for new card
+        if (!RfChip.PICC_IsNewCardPresent())
+        {
+            wait_ms(500);
+            continue;
+        }
+
+        // Read the Card
+        if (!RfChip.PICC_ReadCardSerial())
+        {
+            wait_ms(500);
+            continue;
+        }
+
+        // Here card is read, get ID
+        getCardID(currentCardID);
+
+        // check if the card is registerred
+        if (checkList(id_list, currentCardID))
+        {
+            openProcedure();
+            wait(3);
+            closeProcedure();
+        }
+
+        else
+        {
+            intruderProcedure();
+        }
     }
 }
