@@ -166,6 +166,12 @@ void setLED(bool red, bool green, bool blue)
 }
 
 // Procedures
+/**
+ * Open Gate Procedure
+ * 1) Set the LED to green
+ * 2) Rotate the servo to open the gate
+ * 3) Display Access Granted on the LCD
+ */
 void openProcedure()
 {
     setLED(1, 0, 1); // set the LED green
@@ -173,6 +179,14 @@ void openProcedure()
     lcd_grant_access();
 }
 
+/**
+ * Intruder Procedure
+ * 1) Set the LED to red
+ * 2) Make sure gate is closed
+ * 3) Display Access Denied on the LCD
+ * 4) Wait for 3 seconds for message to be read
+ * 5) Display default welcome screen afterwards
+ */
 void intruderProcedure()
 {
     setLED(0, 1, 0); // set the LED red
@@ -182,6 +196,12 @@ void intruderProcedure()
     lcd_welcome();
 }
 
+/**
+ * Close Gate Procedure
+ * 1) Set the LED to red
+ * 2) Rotate the servo to close the gate
+ * 3) Display default welcome screen afterwards
+ */
 void closeProcedure()
 {
     setLED(0, 1, 0); // set the LED red
@@ -193,7 +213,6 @@ void closeProcedure()
 int main()
 {
     // variables
-    int numberOfOpenClose = 3;
     std::string currentCardID = "";
     std::vector<std::string> id_list;
 
