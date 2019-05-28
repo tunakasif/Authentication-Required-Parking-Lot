@@ -7,14 +7,15 @@
                 "${workspaceFolder}/parking_lot/MFRC522",
                 "${workspaceFolder}/parking_lot/mbed",
                 "${workspaceFolder}/rfid_test/TextLCD",
-                "${workspaceFolder}/rfid_test/TextLCD"
+                "${workspaceFolder}/rfid_test/TextLCD",
+                "${workspaceFolder}/parking_lot/mbed/TARGET_KL25Z/TOOLCHAIN_GCC_ARM"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "C:\\\\\\\\Strawberry\\\\\\\\c\\\\\\\\bin\\\\\\\\gcc.exe",
+            "compilerPath": "C:\\\\\\\\\\\\\\\\Strawberry\\\\\\\\\\\\\\\\c\\\\\\\\\\\\\\\\bin\\\\\\\\\\\\\\\\gcc.exe",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"

@@ -17,32 +17,33 @@ MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 
 int main()
 {
-    // LCD
+    // Initialize
     lcd.cls();
-
-    // Init. RC522 Chip
     RfChip.PCD_Init();
 
+    // wait for new card read then execute procedure for the new card
     while (true)
     {
+        // set the LED to red
         redLED = 0;
         greenLED = 1;
         blueLED = 0;
 
-        // Look for new cards
+        // Look for new card
         if (!RfChip.PICC_IsNewCardPresent())
         {
             wait_ms(500);
             continue;
         }
 
-        // Select one of the cards
+        // Read the Card
         if (!RfChip.PICC_ReadCardSerial())
         {
             wait_ms(500);
             continue;
         }
 
+        // set the LED green
         redLED = 1;
         greenLED = 0;
         blueLED = 1;
