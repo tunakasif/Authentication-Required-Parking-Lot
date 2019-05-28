@@ -16,10 +16,28 @@ DigitalOut blueLED(LED3);
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30, TextLCD::LCD16x2);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 
+std::string getCardID()
+{
+    std::string currentCardID = "";
+    for (uint8_t i = 0; i < RfChip.uid.size; i++)
+    {
+        currentCardID += RfChip.uid.uidByte[i];
+    }
+    return currentCardID;
+}
+
+void printCardID(std::string cardID)
+{
+    for (int i = 0; i < RfChip.uid.size; i++)
+    {
+        lcd.printf("%X:", cardID[i]);
+    }
+}
+
 int main()
 {
     // variables
-    std::string id = "";
+    std::string currentCardID = "";
 
     // Initialize
     lcd.cls();
@@ -52,18 +70,12 @@ int main()
         greenLED = 0;
         blueLED = 1;
 
+        // Get Card UID
+        currentCardID = getCardID();
+
         // Print Card UID
         lcd.cls();
-        for (uint8_t i = 0; i < RfChip.uid.size; i++)
-        {
-            lcd.printf("%X:", RfChip.uid.uidByte[i]);
-            id += RfChip.uid.uidByte[i];
-        }
-        lcd.locate(0, 1);
-        for (int i = 0; i < RfChip.uid.size; i++)
-        {
-            lcd.printf("%X:", id[i]);
-        }
+        printCardID(currentCardID);
         wait(1);
     }
 }
