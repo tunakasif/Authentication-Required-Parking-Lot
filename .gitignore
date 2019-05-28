@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# JSON Files
+*.json 
+
+# HTML Files
+*.html
