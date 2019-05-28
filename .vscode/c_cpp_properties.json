@@ -6,8 +6,6 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/parking_lot/MFRC522",
                 "${workspaceFolder}/parking_lot/mbed",
-                "${workspaceFolder}/rfid_test/TextLCD",
-                "${workspaceFolder}/rfid_test/TextLCD",
                 "${workspaceFolder}/parking_lot/mbed/TARGET_KL25Z/TOOLCHAIN_GCC_ARM",
                 "${workspaceFolder}/dist_test/HCSR04",
                 "${workspaceFolder}/dist_test/TextLCD"
