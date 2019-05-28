@@ -22,10 +22,14 @@ MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 const std::string MASTER_ID = "36A1B815";
 
 // methods
+/**
+ * gets the card ID from serial read and stores 
+ * it as hexadecimal without spaces 
+ */
 void getCardID(std::string &currentCardID)
 {
     currentCardID = "";
-    char buffer[8];
+    char buffer[8]; // created for sprintf()
 
     for (uint8_t i = 0; i < RfChip.uid.size; i++)
     {
@@ -34,17 +38,20 @@ void getCardID(std::string &currentCardID)
     }
 }
 
+/**
+ * prints the card ID in the form of hexadecimal 
+ * without spaces
+ */
 void printCardID(std::string &cardID)
 {
-    /*
-    for (int i = 0; i < RfChip.uid.size; i++)
-    {
-        lcd.printf("%X:", cardID[i]);
-    }
-    */
     lcd.printf(cardID.c_str());
 }
 
+/** 
+ * checks the authorized ID list with the given card ID.
+ * If there is a match returns true, if card is not in 
+ * the list returns false
+ */
 bool checkList(std::vector<std::string> &id_list, std::string &cardID)
 {
     for (int i = 0; i < id_list.size(); i++)
@@ -62,16 +69,17 @@ int main()
     // variables
     std::string currentCardID = "";
     std::vector<std::string> id_list;
-    id_list.push_back(MASTER_ID);
 
     // program code
     // Initialize
+    id_list.push_back(MASTER_ID);
     lcd.cls();
     RfChip.PCD_Init();
 
     // wait for new card read then execute procedure for the new card
     while (true)
     {
+        // set the LCD
         lcd.cls();
         lcd.printf("Read Card");
 
@@ -106,11 +114,11 @@ int main()
 
         if (checkList(id_list, currentCardID))
         {
-            lcd.printf(" Open");
+            lcd.printf("Open");
         }
         else
         {
-            lcd.printf(" Close");
+            lcd.printf("Close");
         }
         wait(2);
     }
