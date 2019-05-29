@@ -27,7 +27,7 @@ HCSR04 dist_sensor(TRIG, ECHO);
 
 // Global Variables
 const std::string MASTER_ID = "1589AB";
-const int GATE_DISTANCE_CM = 11;
+int gate_distance_cm = 11;
 
 // LCD Functions
 /**
@@ -39,6 +39,8 @@ void lcd_welcome()
     lcd.printf("Welcome! Please");
     lcd.locate(0, 1);
     lcd.printf("Read Your Card");
+    lcd.locate(14, 1);
+    lcd.printf("" + gate_distance_cm);
 }
 
 /**
@@ -198,6 +200,11 @@ void openProcedure()
     setLED(1, 0, 1); // set the LED green
     gate_open();
     lcd_grant_access();
+    wait(3);
+    do
+    {
+        // wait here until car clears the gate
+    } while (dist_sensor.get_dist_cm() < gate_distance_cm);
 }
 
 /**
@@ -236,15 +243,15 @@ int main()
     // variables
     std::string currentCardID = "";
     std::vector<std::string> id_list;
-    float distance_mm;
-    unsigned int distance_cm;
 
     // program code
+    // initialize
     id_list.push_back(MASTER_ID);
     lcd_welcome();
     RfChip.PCD_Init();
     gate_initialize();
     setLED(0, 1, 0); // set the LED to red
+    gate_distance_cm = dist_sensor.get_dist_cm();
 
     while (true)
     {
