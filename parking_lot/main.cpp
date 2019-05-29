@@ -197,14 +197,21 @@ float get_distance_mm()
  */
 void openProcedure()
 {
+    // variables
+    unsigned int distance;
+
+    // function code
     setLED(1, 0, 1); // set the LED green
     gate_open();
     lcd_grant_access();
     wait(3);
     do
     {
+        distance = dist_sensor.get_dist_cm();
+        lcd.locate(10, 1);
+        lcd.printf("" + distance);
         // wait here until car clears the gate
-    } while (dist_sensor.get_dist_cm() < gate_distance_cm);
+    } while (distance <= gate_distance_cm);
 }
 
 /**
