@@ -38,7 +38,7 @@ void lcd_welcome()
     lcd.cls();
     lcd.printf("Welcome! Please");
     lcd.locate(0, 1);
-    lcd.printf("Read Your Card");
+    lcd.printf("Scan Your Card");
 }
 
 /**
