@@ -1,4 +1,4 @@
-# Authentication-Required-Parking-Lot
+# Authentication Required Parking Lot
 
 Goal
 ====
