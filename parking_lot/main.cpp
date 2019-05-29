@@ -21,7 +21,7 @@ Servo gate(PTA13);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 
 // Global Variables
-const std::string MASTER_ID = "36A1B815";
+const std::string MASTER_ID = "1589AB";
 
 // LCD Functions
 /**
