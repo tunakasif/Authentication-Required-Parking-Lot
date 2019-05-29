@@ -20,14 +20,12 @@
 DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
-DigitalIn fish_pin(PTA5);
 Timer timer_gate;
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30,
             TextLCD::LCD16x2);
 Servo gate(PTA13);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 HCSR04 dist_sensor(TRIG, ECHO);
-InterruptIn fish_sensor(PTA5);
 
 // Global Constants
 const std::string MASTER_ID = "1589AB";
@@ -80,19 +78,14 @@ void lcd_intruder()
 }
 
 /**
- * Counts to 10 at bottom-right corner
- * of the LCD 
+ * Indicates the parking lot is full
  */
-void lcd_count()
+void lcd_park_full()
 {
-    int number = 0;
-    while (number < 10)
-    {
-        lcd.locate(15, 1);
-        lcd.printf("%d", number);
-        number++;
-        wait(1);
-    }
+    lcd.cls();
+    lcd.printf("Parking Lot Full");
+    lcd.locate(0, 1);
+    lcd.printf("Come Back Later");
 }
 
 // Gate Functions
@@ -183,14 +176,14 @@ void setLED(bool red, bool green, bool blue)
 unsigned int get_distance_cm()
 {
     dist_sensor.start();
-    wait_ms(500);
+    wait_ms(300);
     return dist_sensor.get_dist_cm();
 }
 
 float get_distance_mm()
 {
     dist_sensor.start();
-    wait_ms(500);
+    wait_ms(300);
     return dist_sensor.get_dist_mm();
 }
 
@@ -203,30 +196,39 @@ float get_distance_mm()
  */
 void openProcedure(int &gate_distance_cm)
 {
-    // variables
-    int distance_cm;
-    int count = 0;
-
-    // function code
-    timer_gate.reset();
-    timer_gate.start();
-    setLED(1, 0, 1); // set the LED green
-    gate_open();
-    lcd_grant_access();
-    distance_cm = get_distance_cm();
-    while ((timer_gate.read() < 3) ||
-           (distance_cm < gate_distance_cm))
+    if (avaliableSpots > 0)
     {
+        // variables
+        int distance_cm;
+        int count = 0;
+
+        // function code
+        timer_gate.reset();
+        timer_gate.start();
+        setLED(1, 0, 1); // set the LED green
+        gate_open();
+        lcd_grant_access();
         distance_cm = get_distance_cm();
-        if ((count == 0) && (distance_cm < gate_distance_cm))
+        while ((timer_gate.read() < 3) ||
+               (distance_cm < gate_distance_cm))
         {
-            // set LED blue to indicate
-            setLED(1, 1, 1);
-            avaliableSpots--;
-            count++;
+            distance_cm = get_distance_cm();
+            if ((count == 0) && (distance_cm < gate_distance_cm))
+            {
+                // set LED blue to indicate
+                setLED(1, 1, 1);
+                avaliableSpots--;
+                count++;
+            }
         }
+        timer_gate.stop();
     }
-    timer_gate.stop();
+
+    else
+    {
+        lcd_park_full();
+        wait(2);
+    }
 }
 
 /**
@@ -259,24 +261,6 @@ void closeProcedure()
     lcd_welcome();
 }
 
-// ISR
-/*
-void fish_ISR()
-{
-    // since the flying fish can bounce this wait and
-    // pin check makes sure that it is a rising edge
-    wait(0.1);
-    if (fish_pin.read() == 1)
-    {
-        lcd.cls();
-        lcd.printf("fish");
-        if (avaliableSpots < NUMBER_OF_PARK_SPOTS)
-            avaliableSpots++;
-        wait(1);
-    }
-}
-*/
-
 // program
 int main()
 {
@@ -289,7 +273,6 @@ int main()
     // initialize
     gate_distance_cm = get_distance_cm();
     avaliableSpots = NUMBER_OF_PARK_SPOTS;
-    // fish_sensor.rise(&fish_ISR);
     id_list.push_back(MASTER_ID);
     RfChip.PCD_Init();
     setLED(0, 1, 0); // set the LED to red
