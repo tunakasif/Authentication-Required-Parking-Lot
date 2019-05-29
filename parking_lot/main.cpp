@@ -2,6 +2,7 @@
 #include "TextLCD.h"
 #include "Servo.h"
 #include "MFRC522.h"
+#include "hcsr04.h"
 #include <string>
 #include <vector>
 
@@ -11,6 +12,9 @@
 #define SPI_MOSI PTD2
 #define SPI_MISO PTD3
 #define MF_RESET PTD5
+//KL25Z Pins for HC-SR04 interface
+#define ECHO PTD4
+#define TRIG PTA12
 
 // Constraints for the system
 DigitalOut redLED(LED1);
@@ -19,9 +23,11 @@ DigitalOut blueLED(LED3);
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30, TextLCD::LCD16x2);
 Servo gate(PTA13);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
+HCSR04 dist_sensor(TRIG, ECHO);
 
 // Global Variables
 const std::string MASTER_ID = "1589AB";
+const int GATE_DISTANCE_CM = 11;
 
 // LCD Functions
 /**
@@ -165,6 +171,21 @@ void setLED(bool red, bool green, bool blue)
     blueLED = blue;
 }
 
+// HC-SR04 Distance Sensor Functions
+unsigned int get_distance_cm()
+{
+    dist_sensor.start();
+    wait_ms(500);
+    return dist_sensor.get_dist_cm();
+}
+
+float get_distance_mm()
+{
+    dist_sensor.start();
+    wait_ms(500);
+    return dist_sensor.get_dist_mm();
+}
+
 // Procedures
 /**
  * Open Gate Procedure
@@ -215,6 +236,8 @@ int main()
     // variables
     std::string currentCardID = "";
     std::vector<std::string> id_list;
+    float distance_mm;
+    unsigned int distance_cm;
 
     // program code
     id_list.push_back(MASTER_ID);
@@ -246,7 +269,7 @@ int main()
         if (checkList(id_list, currentCardID))
         {
             openProcedure();
-            wait(3);
+            wait(1);
             closeProcedure();
         }
 
