@@ -13,7 +13,7 @@ const int NUMBER_OF_PARK_SPOTS = 5;
 // global variables
 int avaliableSpots;
 
-void ISR()
+void fish_ISR()
 {
     // since the flying fish can bounce this wait and
     // pin check makes sure that it is a rising edge
@@ -33,7 +33,7 @@ int main()
     // Initialize
     avaliableSpots = NUMBER_OF_PARK_SPOTS;
     avaliableSpots = 3;
-    fish_sensor.rise(&ISR);
+    fish_sensor.rise(&fish_ISR);
 
     while (true)
     {
