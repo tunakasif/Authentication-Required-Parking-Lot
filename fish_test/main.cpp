@@ -8,7 +8,7 @@ InterruptIn fish_sensor(PTA5);
 DigitalIn fish_pin(PTA5);
 
 // global constants
-const int NUMBER_OF_PARK_SPOTS = 5;
+const int NUMBER_OF_PARK_SPOTS = 3;
 
 // global variables
 int avaliableSpots;
@@ -32,7 +32,7 @@ int main()
     // program code
     // Initialize
     avaliableSpots = NUMBER_OF_PARK_SPOTS;
-    avaliableSpots = 3;
+    avaliableSpots = 1;
     fish_sensor.rise(&fish_ISR);
 
     while (true)

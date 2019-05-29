@@ -20,6 +20,8 @@
 DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
+InterruptIn fish_sensor(PTA5);
+DigitalIn fish_pin(PTA5);
 Timer timer_gate;
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30,
             TextLCD::LCD16x2);
@@ -180,13 +182,6 @@ unsigned int get_distance_cm()
     return dist_sensor.get_dist_cm();
 }
 
-float get_distance_mm()
-{
-    dist_sensor.start();
-    wait_ms(300);
-    return dist_sensor.get_dist_mm();
-}
-
 // Procedures
 /**
  * Open Gate Procedure
@@ -261,6 +256,20 @@ void closeProcedure()
     lcd_welcome();
 }
 
+void fish_ISR()
+{
+    // since the flying fish can bounce this wait and
+    // pin check makes sure that it is a rising edge
+    wait(0.1);
+    if (fish_pin.read() == 1)
+    {
+        if (avaliableSpots < NUMBER_OF_PARK_SPOTS)
+        {
+            avaliableSpots++;
+        }
+    }
+}
+
 // program
 int main()
 {
@@ -273,6 +282,7 @@ int main()
     // initialize
     gate_distance_cm = get_distance_cm();
     avaliableSpots = NUMBER_OF_PARK_SPOTS;
+    fish_sensor.rise(&fish_ISR);
     id_list.push_back(MASTER_ID);
     RfChip.PCD_Init();
     setLED(0, 1, 0); // set the LED to red
@@ -281,6 +291,7 @@ int main()
 
     while (true)
     {
+        lcd_welcome();
         // Look for new card
         if (!RfChip.PICC_IsNewCardPresent())
         {
