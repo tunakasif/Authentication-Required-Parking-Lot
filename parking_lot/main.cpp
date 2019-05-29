@@ -2,6 +2,7 @@
 #include "TextLCD.h"
 #include "Servo.h"
 #include "MFRC522.h"
+#include "hcsr04.h"
 #include <string>
 #include <vector>
 
@@ -11,14 +12,19 @@
 #define SPI_MOSI PTD2
 #define SPI_MISO PTD3
 #define MF_RESET PTD5
+//KL25Z Pins for HC-SR04 interface
+#define ECHO PTD4
+#define TRIG PTA12
 
 // Constraints for the system
 DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
-TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30, TextLCD::LCD16x2);
+TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30,
+            TextLCD::LCD16x2);
 Servo gate(PTA13);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
+HCSR04 dist_sensor(TRIG, ECHO);
 
 // Global Variables
 const std::string MASTER_ID = "1589AB";
@@ -142,7 +148,8 @@ void printCardID(std::string &cardID)
  * If there is a match returns true, if card is not in 
  * the list returns false
  */
-bool checkList(std::vector<std::string> &id_list, std::string &cardID)
+bool checkList(std::vector<std::string> &id_list,
+               std::string &cardID)
 {
     for (int i = 0; i < id_list.size(); i++)
     {
@@ -165,6 +172,21 @@ void setLED(bool red, bool green, bool blue)
     blueLED = blue;
 }
 
+// HC-SR04 Distance Sensor Functions
+unsigned int get_distance_cm()
+{
+    dist_sensor.start();
+    wait_ms(500);
+    return dist_sensor.get_dist_cm();
+}
+
+float get_distance_mm()
+{
+    dist_sensor.start();
+    wait_ms(500);
+    return dist_sensor.get_dist_mm();
+}
+
 // Procedures
 /**
  * Open Gate Procedure
@@ -172,11 +194,18 @@ void setLED(bool red, bool green, bool blue)
  * 2) Rotate the servo to open the gate
  * 3) Display Access Granted on the LCD
  */
-void openProcedure()
+void openProcedure(int &gate_distance_cm)
 {
     setLED(1, 0, 1); // set the LED green
     gate_open();
     lcd_grant_access();
+    wait(3);
+    while (get_distance_cm() < gate_distance_cm)
+    {
+        // wait here until car clears the gate
+        // set LED blue to indicate
+        setLED(1, 1, 1);
+    }
 }
 
 /**
@@ -215,13 +244,16 @@ int main()
     // variables
     std::string currentCardID = "";
     std::vector<std::string> id_list;
+    int gate_distance_cm;
 
     // program code
+    // initialize
     id_list.push_back(MASTER_ID);
     lcd_welcome();
     RfChip.PCD_Init();
     gate_initialize();
     setLED(0, 1, 0); // set the LED to red
+    gate_distance_cm = get_distance_cm();
 
     while (true)
     {
@@ -245,8 +277,8 @@ int main()
         // check if the card is registerred
         if (checkList(id_list, currentCardID))
         {
-            openProcedure();
-            wait(3);
+            openProcedure(gate_distance_cm);
+            wait(1);
             closeProcedure();
         }
 
