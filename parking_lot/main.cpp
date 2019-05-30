@@ -34,6 +34,7 @@ const std::string MASTER_ID = "1589AB";
 const int NUMBER_OF_PARK_SPOTS = 3;
 
 // Global Variables
+std::vector<std::string> id_list;
 int avaliableSpots;
 
 // LCD Functions
@@ -150,8 +151,7 @@ void printCardID(std::string &cardID)
  * If there is a match returns true, if card is not in 
  * the list returns false
  */
-bool checkList(std::vector<std::string> &id_list,
-               std::string &cardID)
+bool checkList(std::string &cardID)
 {
     for (int i = 0; i < id_list.size(); i++)
     {
@@ -275,7 +275,6 @@ int main()
 {
     // variables
     std::string currentCardID = "";
-    std::vector<std::string> id_list;
     int gate_distance_cm;
 
     // program code
@@ -310,7 +309,7 @@ int main()
         getCardID(currentCardID);
 
         // check if the card is registerred
-        if (checkList(id_list, currentCardID))
+        if (checkList(currentCardID))
         {
             openProcedure(gate_distance_cm);
             wait(1);
