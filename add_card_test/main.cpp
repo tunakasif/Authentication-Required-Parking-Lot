@@ -15,8 +15,8 @@
 DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
-InterruptIn fish_sensor(PTA5);
-DigitalIn fish_pin(PTA5);
+InterruptIn card_register(PTA5);
+DigitalIn register_pin(PTA5);
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30, TextLCD::LCD16x2);
 MFRC522 RfChip(SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
 
@@ -66,17 +66,13 @@ bool checkList(std::vector<std::string> &id_list, std::string &cardID)
     return false;
 }
 
-void fish_ISR()
+void register_ISR()
 {
     // since the flying fish can bounce this wait and
     // pin check makes sure that it is a rising edge
     wait(0.1);
-    if (fish_pin.read() == 1)
+    if (register_pin.read() == 1)
     {
-        if (avaliableSpots < NUMBER_OF_PARK_SPOTS)
-        {
-            avaliableSpots++;
-        }
     }
 }
 
@@ -91,7 +87,7 @@ int main()
     id_list.push_back(MASTER_ID);
     lcd.cls();
     RfChip.PCD_Init();
-    fish_sensor.rise(&fish_ISR);
+    card_register.rise(&register_ISR);
 
     // wait for new card read then execute procedure for the new card
     while (true)
