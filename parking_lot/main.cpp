@@ -21,8 +21,11 @@ DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
 InterruptIn fish_sensor(PTA5);
+InterruptIn button(PTA4);
 DigitalIn fish_pin(PTA5);
+DigitalIn button_pin(PTA4);
 Timer timer_gate;
+Timer debounce;
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30,
             TextLCD::LCD16x2);
 Servo gate(PTA13);
@@ -270,6 +273,18 @@ void fish_ISR()
     }
 }
 
+void register_ISR()
+{
+    if (debounce.read_ms() > 100 && button_pin.read() == 1) // only allow toggle if debounce
+    {
+        lcd.cls();
+        lcd.printf("Button");
+        wait(3);
+        debounce.reset(); // restart timer when the toggle is performed
+        lcd_welcome();
+    }
+}
+
 // program
 int main()
 {
@@ -281,6 +296,8 @@ int main()
     // initialize
     gate_distance_cm = get_distance_cm();
     avaliableSpots = NUMBER_OF_PARK_SPOTS;
+    debounce.start();
+    button.rise(&register_ISR);
     fish_sensor.rise(&fish_ISR);
     id_list.push_back(MASTER_ID);
     RfChip.PCD_Init();
