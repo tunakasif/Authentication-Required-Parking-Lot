@@ -21,11 +21,12 @@ DigitalOut redLED(LED1);
 DigitalOut greenLED(LED2);
 DigitalOut blueLED(LED3);
 InterruptIn fish_sensor(PTA5);
-InterruptIn button(PTA4);
+InterruptIn card_register(PTA4);
 DigitalIn fish_pin(PTA5);
-DigitalIn button_pin(PTA4);
+DigitalIn register_pin(PTA4);
 Timer timer_gate;
 Timer debounce;
+Timer timer_register;
 TextLCD lcd(PTE20, PTE21, PTE22, PTE23, PTE29, PTE30,
             TextLCD::LCD16x2);
 Servo gate(PTA13);
@@ -35,6 +36,8 @@ HCSR04 dist_sensor(TRIG, ECHO);
 // Global Constants
 const std::string MASTER_ID = "1589AB";
 const int NUMBER_OF_PARK_SPOTS = 3;
+const int REGISTER_PERIOD = 10; // seconds
+const int DEFAULT_LCD_WAIT = 3; // seconds
 
 // Global Variables
 std::vector<std::string> id_list;
@@ -92,6 +95,22 @@ void lcd_park_full()
     lcd.printf("Parking Lot Full");
     lcd.locate(0, 1);
     lcd.printf("Come Back Later");
+}
+
+void lcd_register_master()
+{
+    lcd.cls();
+    lcd.printf("Please Scan");
+    lcd.locate(0, 1);
+    lcd.printf("Master Card");
+}
+
+void lcd_register_new()
+{
+    lcd.cls();
+    lcd.printf("Please Scan");
+    lcd.locate(0, 1);
+    lcd.printf("New Card");
 }
 
 // Gate Functions
@@ -275,11 +294,118 @@ void fish_ISR()
 
 void register_ISR()
 {
-    if (debounce.read_ms() > 100 && button_pin.read() == 1) // only allow toggle if debounce
+    if (debounce.read_ms() > 100 && register_pin.read() == 1) // only allow toggle if debounce
     {
-        lcd.cls();
-        lcd.printf("Button");
-        wait(3);
+        // since the flying fish can bounce this wait and
+        // pin check makes sure that it is a rising edge
+        wait(0.1);
+        if (register_pin.read() == 1)
+        {
+            // variables
+            std::string currentCardID = "";
+
+            // ISR code
+            lcd_register_master();
+            timer_register.reset();
+            timer_register.start();
+
+            while (timer_register.read() < REGISTER_PERIOD && currentCardID != MASTER_ID)
+            {
+                // set the LED blue
+                redLED = 1;
+                greenLED = 1;
+                blueLED = 1;
+
+                lcd.locate(14, 1);
+                lcd.printf("%d", (int)(REGISTER_PERIOD - timer_register.read()));
+
+                // Look for new card
+                if (!RfChip.PICC_IsNewCardPresent())
+                {
+                    wait_ms(500);
+                    continue;
+                }
+
+                // Read the Card
+                if (!RfChip.PICC_ReadCardSerial())
+                {
+                    wait_ms(500);
+                    continue;
+                }
+
+                getCardID(currentCardID);
+                if (currentCardID != MASTER_ID)
+                {
+                    // set the LED red
+                    redLED = 0;
+                    greenLED = 1;
+                    blueLED = 0;
+
+                    lcd_intruder();
+                    wait(std::min(DEFAULT_LCD_WAIT,
+                                  (int)(timer_register.read() - 1)));
+                    lcd_register_master();
+                }
+            }
+
+            if (currentCardID == MASTER_ID)
+            {
+                // set the LED green
+                redLED = 1;
+                greenLED = 0;
+                blueLED = 1;
+                lcd_register_new();
+                wait(DEFAULT_LCD_WAIT);
+                timer_register.reset();
+
+                while (timer_register.read() < REGISTER_PERIOD && currentCardID == MASTER_ID)
+                {
+                    // set the LED red
+                    redLED = 0;
+                    greenLED = 1;
+                    blueLED = 0;
+
+                    lcd.locate(14, 1);
+                    lcd.printf("%d", (int)(REGISTER_PERIOD - timer_register.read()));
+
+                    // Look for new card
+                    if (!RfChip.PICC_IsNewCardPresent())
+                    {
+                        wait_ms(500);
+                        continue;
+                    }
+
+                    // Read the Card
+                    if (!RfChip.PICC_ReadCardSerial())
+                    {
+                        wait_ms(500);
+                        continue;
+                    }
+
+                    // set the LED green
+                    redLED = 1;
+                    greenLED = 0;
+                    blueLED = 1;
+
+                    getCardID(currentCardID);
+                    if (!checkList(currentCardID))
+                    {
+                        id_list.push_back(currentCardID);
+                        lcd.cls();
+                        lcd.printf("New Card Added");
+                        wait(DEFAULT_LCD_WAIT);
+                    }
+                    else
+                    {
+                        lcd.cls();
+                        lcd.printf("Already In List");
+                        wait(DEFAULT_LCD_WAIT);
+                    }
+                }
+            }
+            lcd_welcome();
+            timer_register.stop();
+        }
         debounce.reset(); // restart timer when the toggle is performed
         lcd_welcome();
     }
@@ -297,7 +423,7 @@ int main()
     gate_distance_cm = get_distance_cm();
     avaliableSpots = NUMBER_OF_PARK_SPOTS;
     debounce.start();
-    button.rise(&register_ISR);
+    card_register.rise(&register_ISR);
     fish_sensor.rise(&fish_ISR);
     id_list.push_back(MASTER_ID);
     RfChip.PCD_Init();
