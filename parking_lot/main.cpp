@@ -97,6 +97,10 @@ void lcd_park_full()
     lcd.printf("Come Back Later");
 }
 
+/**
+ * Prints the first step of card registration 
+ * process. Asks for master card scan.
+ */
 void lcd_register_master()
 {
     lcd.cls();
@@ -105,6 +109,10 @@ void lcd_register_master()
     lcd.printf("Master Card");
 }
 
+/**
+ * Prints the second step of card registration 
+ * process. Asks for new card scan.
+ */
 void lcd_register_new()
 {
     lcd.cls();
@@ -178,9 +186,7 @@ bool checkList(std::string &cardID)
     for (int i = 0; i < id_list.size(); i++)
     {
         if (cardID == id_list.at(i))
-        {
             return true;
-        }
     }
     return false;
 }
@@ -197,6 +203,10 @@ void setLED(bool red, bool green, bool blue)
 }
 
 // HC-SR04 Distance Sensor Functions
+/**
+ * initiates the HC-SR04 sensor and
+ * returns the distance in cm
+ */
 unsigned int get_distance_cm()
 {
     dist_sensor.start();
@@ -210,6 +220,10 @@ unsigned int get_distance_cm()
  * 1) Set the LED to green
  * 2) Rotate the servo to open the gate
  * 3) Display Access Granted on the LCD
+ * 4) Check either a car passed the barrier 
+ * or there is a car in the gateway
+ * 5) In either case decreases the number of free spots
+ * 6) Keeps the gate open if there is a car in the gateway
  */
 void openProcedure(int &gate_distance_cm)
 {
@@ -226,7 +240,7 @@ void openProcedure(int &gate_distance_cm)
         gate_open();
         lcd_grant_access();
         distance_cm = get_distance_cm();
-        while ((timer_gate.read() < 3) ||
+        while ((timer_gate.read() < DEFAULT_LCD_WAIT) ||
                (distance_cm < gate_distance_cm))
         {
             distance_cm = get_distance_cm();
@@ -244,7 +258,7 @@ void openProcedure(int &gate_distance_cm)
     else
     {
         lcd_park_full();
-        wait(2);
+        wait(DEFAULT_LCD_WAIT);
     }
 }
 
@@ -261,7 +275,7 @@ void intruderProcedure()
     setLED(0, 1, 0); // set the LED red
     gate_close();
     lcd_intruder();
-    wait(3);
+    wait(DEFAULT_LCD_WAIT);
     lcd_welcome();
 }
 
@@ -278,6 +292,13 @@ void closeProcedure()
     lcd_welcome();
 }
 
+/**
+ * Flying Fish Sensor ISR for card count
+ * 
+ * Triggerred by the rising edge of flying fish
+ * sensor. And used to keep the track of the 
+ * cars that exit. 
+ */
 void fish_ISR()
 {
     // since the flying fish can bounce this wait and
@@ -286,12 +307,19 @@ void fish_ISR()
     if (fish_pin.read() == 1)
     {
         if (avaliableSpots < NUMBER_OF_PARK_SPOTS)
-        {
             avaliableSpots++;
-        }
     }
 }
 
+/**
+ * ISR of register is triggerred by the rising edge of 
+ * the push button.
+ * 
+ * Gives 10 seconds to scan master card and additional 
+ * 10 more seconds for the new card after master card is 
+ * scanned. If the scanned card is not in the list adds to
+ * list. 
+ */
 void register_ISR()
 {
     if (debounce.read_ms() > 100 && register_pin.read() == 1) // only allow toggle if debounce
@@ -360,10 +388,7 @@ void register_ISR()
 
                 while (timer_register.read() < REGISTER_PERIOD && currentCardID == MASTER_ID)
                 {
-                    // set the LED red
-                    redLED = 0;
-                    greenLED = 1;
-                    blueLED = 0;
+                    setLED(0, 1, 0); // set LED red
 
                     lcd.locate(14, 1);
                     lcd.printf("%d", (int)(REGISTER_PERIOD - timer_register.read()));
@@ -383,9 +408,7 @@ void register_ISR()
                     }
 
                     // set the LED green
-                    redLED = 1;
-                    greenLED = 0;
-                    blueLED = 1;
+                    setLED(1, 0, 1); // set LED green
 
                     getCardID(currentCardID);
                     if (!checkList(currentCardID))
@@ -404,6 +427,7 @@ void register_ISR()
                 }
             }
             lcd_welcome();
+            setLED(0, 1, 0); // set LED red
             timer_register.stop();
         }
         debounce.reset(); // restart timer when the toggle is performed
