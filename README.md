@@ -58,6 +58,8 @@ Components
 
 5.  Servo Motor SG90
 
-6.  LED (Green, Red)
+6.  FC-51: IR Infrared Obstacle Detection Sensor Module 2
+
+7.  LED 
 
 <img src="images/Diagram.jpg" alt="drawing" width="500"/>
