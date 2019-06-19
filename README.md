@@ -1,4 +1,7 @@
 # Authentication Required Parking Lot
+Video Demonstration
+===================
+https://youtu.be/h9PTMVQ-9pk
 
 Goal
 ====
